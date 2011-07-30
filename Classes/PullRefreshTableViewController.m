@@ -35,7 +35,7 @@
 
 @implementation PullRefreshTableViewController
 
-@synthesize textPull, textRelease, textLoading, refreshHeaderView, refreshLabel, refreshArrow, refreshSpinner;
+@synthesize textPull, textRelease, textLoading, refreshHeaderView, refreshLabel, refreshArrow, refreshSpinner, lastUpdatedLabel;
 
 - (id)initWithStyle:(UITableViewStyle)style {
     self = [super initWithStyle:style];
@@ -50,17 +50,23 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self addPullToRefreshHeader];
+
 }
 
 - (void)addPullToRefreshHeader {
     refreshHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0 - REFRESH_HEADER_HEIGHT, 320, REFRESH_HEADER_HEIGHT)];
     refreshHeaderView.backgroundColor = [UIColor clearColor];
 
-    refreshLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, REFRESH_HEADER_HEIGHT)];
+    refreshLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, -10, 320, REFRESH_HEADER_HEIGHT)];
     refreshLabel.backgroundColor = [UIColor clearColor];
     refreshLabel.font = [UIFont boldSystemFontOfSize:12.0];
     refreshLabel.textAlignment = UITextAlignmentCenter;
 
+    lastUpdatedLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, 320, REFRESH_HEADER_HEIGHT)];
+    lastUpdatedLabel.backgroundColor = [UIColor clearColor];
+    lastUpdatedLabel.font = [UIFont systemFontOfSize:12.0];
+    lastUpdatedLabel.textAlignment = UITextAlignmentCenter;
+    
     refreshArrow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"arrow.png"]];
     refreshArrow.frame = CGRectMake((REFRESH_HEADER_HEIGHT - 27) / 2,
                                     (REFRESH_HEADER_HEIGHT - 44) / 2,
@@ -71,9 +77,11 @@
     refreshSpinner.hidesWhenStopped = YES;
 
     [refreshHeaderView addSubview:refreshLabel];
+    [refreshHeaderView addSubview:lastUpdatedLabel];
     [refreshHeaderView addSubview:refreshArrow];
     [refreshHeaderView addSubview:refreshSpinner];
     [self.tableView addSubview:refreshHeaderView];
+
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
@@ -139,7 +147,19 @@
     self.tableView.contentInset = UIEdgeInsetsZero;
     [refreshArrow layer].transform = CATransform3DMakeRotation(M_PI * 2, 0, 0, 1);
     [UIView commitAnimations];
+    
+    [self updateLastUpdatedLabel];
+
 }
+
+- (void) updateLastUpdatedLabel{
+    
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"MM/dd/yyyy hh:mma"];
+    NSString *lastUpdatedString = [[NSString alloc] initWithFormat:@"Last updated at %@", [dateFormatter stringFromDate:[NSDate date]]];
+    [lastUpdatedLabel setText:lastUpdatedString];
+}
+
 
 - (void)stopLoadingComplete:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
     // Reset the header
@@ -162,6 +182,7 @@
     [textPull release];
     [textRelease release];
     [textLoading release];
+    [lastUpdatedLabel release];
     [super dealloc];
 }
 
